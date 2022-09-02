@@ -328,9 +328,9 @@ class AmazonSellingPartnerApi
     }
 
     /**
-     * @param $accessKey
-     * @param $secretKey
-     * @param $roleArn
+     * @param $accessKey string aws_iam_id
+     * @param $secretKey string aws_iam_secret
+     * @param $roleArn string
      * @param int $durationSeconds
      * @return array
      */
@@ -345,7 +345,7 @@ class AmazonSellingPartnerApi
                 'Version' => '2011-06-15'
             ];
             ksort($param);
-            $query_param = http_build_query($param);
+            $queryParam = http_build_query($param);
             $host = 'sts.amazonaws.com';
             $datetime = gmdate('Ymd\THis\Z');
             $headers = [
@@ -353,11 +353,11 @@ class AmazonSellingPartnerApi
                 'Host: ' . $host,
                 'X-Amz-Date: ' . $datetime,
             ];
-            $headers[] = 'Authorization: ' . $this->setAuthorizationSession($query_param, $datetime, $host, $accessKey, $secretKey);
+            $headers[] = 'Authorization: ' . $this->setAuthorizationSession($queryParam, $datetime, $host, $accessKey, $secretKey);
             $this->curlOption = [];
             $this->curlOption[CURLOPT_CUSTOMREQUEST] = 'GET';
             $jsonData = [];
-            $apiUrl = sprintf('https://%s/?%s', $host, $query_param);
+            $apiUrl = sprintf('https://%s/?%s', $host, $queryParam);
             $response = $this->curlRequest($apiUrl, $jsonData, $headers, $this->curlOption);
             $res = simplexml_load_string($response['data'], 'SimpleXMLElement', LIBXML_NOCDATA);
             $data = json_decode(json_encode($res), true, 512, JSON_BIGINT_AS_STRING);
