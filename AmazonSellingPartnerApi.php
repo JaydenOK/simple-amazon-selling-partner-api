@@ -194,22 +194,24 @@ class AmazonSellingPartnerApi
 
     /**
      * 获取授权RTD token
+     * @param $method
+     * @param $path
+     * @param $dataElements
      * @return array
      */
-    protected function getRestrictedToken()
+    protected function getRestrictedToken($method, $path, $dataElements)
     {
-        $path = '/tokens/2021-03-01/restrictedDataToken';
+        $uri = '/tokens/2021-03-01/restrictedDataToken';
         $queryParams = '';
-        $method = 'POST';
         $restrictedResources = [
             [
-                'method' => 'GET',
-                'path' => '/orders/v0/orders',
-                'dataElements' => ["buyerInfo", "shippingAddress"]
+                'method' => $method,
+                'path' => $path,
+                'dataElements' => $dataElements,
             ]
         ];
         $bodyParam = ['restrictedResources' => $restrictedResources];
-        $responseArr = $this->send($path, $queryParams, $bodyParam, $method);
+        $responseArr = $this->send($uri, $queryParams, $bodyParam, 'POST');
         return $responseArr;
     }
 
