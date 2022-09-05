@@ -24,6 +24,7 @@ class AmazonSellingPartnerApi
     protected $marketplaceId;
     protected $sellingPartnerId;
     protected $curlOption = [];
+    protected $withSecurityToken = true;
 
     /**
      * AmazonSellingPartnerApi constructor.
@@ -225,14 +226,19 @@ class AmazonSellingPartnerApi
     {
         try {
             $datetime = gmdate('Ymd\THis\Z');
-            $headers = [
-                'content-type: application/json',
-                'host: ' . $this->endpoint,
-                'user-agent: ' . self::USER_AGENT,
-                'x-amz-access-token: ' . $this->accessToken,
-                'x-amz-security-token: ' . $this->sessionToken,
-                'x-amz-date: ' . $datetime,
-            ];
+            $headers = $headersArr = [];
+            $headersArr['host'] = $this->endpoint;
+            $headersArr['user-agent'] = self::USER_AGENT;
+            $headersArr['x-amz-access-token'] = $this->accessToken;
+            $headersArr['x-amz-date'] = $datetime;
+            $headersArr['content-type'] = 'application/json';
+            if ($this->withSecurityToken) {
+                $headersArr['x-amz-security-token'] = $this->sessionToken;
+            }
+            ksort($headersArr);
+            foreach ($headersArr as $key => $value) {
+                $headers[] = $key . ': ' . $value;
+            }
             ksort($bodyParam);
             $apiUrl = 'https://' . $this->endpoint . $uri;
             if (in_array($method, ['POST', 'PUT', 'PATCH'])) {
