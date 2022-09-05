@@ -6,5 +6,10 @@
             "email": "603480498@qq.com"
         }
     ],
-    "require": {}
+    "require": {
+      "ext-curl": "*",
+        "ext-simplexml": "*",
+        "ext-json": "*",
+        "ext-libxml": "*"
+    }
 }

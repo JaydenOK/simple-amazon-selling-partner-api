@@ -1,7 +1,7 @@
 <?php
 
 /**
- * 亚马逊销售合作伙伴授权API (授权流程/签名/RDT信息)
+ * 亚马逊销售合作伙伴授权API (Amazon网页授权流程/生成签名/获取RDT受限token信息-PII)
  * simple-amazon-selling-partner-api
  * Class AmazonSellingPartnerApi
  */
@@ -171,12 +171,10 @@ class AmazonSellingPartnerApi
 
     /**
      * 刷新token
-     * @param $clientId
-     * @param $clientSecret
      * @param $refreshToken
      * @return array
      */
-    protected function refreshAccessToken($clientId, $clientSecret, $refreshToken)
+    protected function refreshAccessToken($refreshToken)
     {
         $tokenUrl = self::API_HOST . '/auth/o2/token';
         $data = [
@@ -228,7 +226,7 @@ class AmazonSellingPartnerApi
         try {
             $datetime = gmdate('Ymd\THis\Z');
             $headers = [
-                'content-type: application/json;charset=UTF-8',
+                'content-type: application/json',
                 'host: ' . $this->endpoint,
                 'user-agent: ' . self::USER_AGENT,
                 'x-amz-access-token: ' . $this->accessToken,
@@ -260,7 +258,7 @@ class AmazonSellingPartnerApi
             if (is_string($response['data']) && stripos($response['data'], '<html') !== false) {
                 $response['data'] = strip_tags($response['data']);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $response = ['http_code' => 400, 'data' => $e->getMessage()];
         }
         return $response;
@@ -278,13 +276,12 @@ class AmazonSellingPartnerApi
     {
         $shortDate = substr($datetime, 0, 8);
         $service = 'execute-api';
-        $signHeader = 'host;user-agent;x-amz-access-token;x-amz-date';
+        $signHeader = 'host;user-agent;x-amz-date';
         $paramSign = "$method\n";
         $paramSign .= "$uri\n";
         $paramSign .= "$queryString\n";
         $paramSign .= "host:" . $this->endpoint . "\n";
         $paramSign .= "user-agent:" . self::USER_AGENT . "\n";
-        $paramSign .= "x-amz-access-token:" . $this->accessToken . "\n";
         $paramSign .= "x-amz-date:{$datetime}\n";
         $paramSign .= "\n";
         $paramSign .= "$signHeader\n";
@@ -328,9 +325,9 @@ class AmazonSellingPartnerApi
     }
 
     /**
-     * @param $accessKey string aws_iam_id
-     * @param $secretKey string aws_iam_secret
-     * @param $roleArn string
+     * @param $accessKey
+     * @param $secretKey
+     * @param string $roleArn
      * @param int $durationSeconds
      * @return array
      */
@@ -365,7 +362,7 @@ class AmazonSellingPartnerApi
             if (is_string($response['data']) && stripos($response['data'], '<html') !== false) {
                 $response['data'] = strip_tags($response['data']);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $response = ['http_code' => 400, 'data' => $e->getMessage()];
         }
         return $response;
@@ -381,7 +378,6 @@ class AmazonSellingPartnerApi
      */
     protected function setAuthorizationSession($queryParam, $datetime, $host, $accessKey, $secretKey)
     {
-        $region = $this->region;
         $service = 'sts';
         $shortDate = substr($datetime, 0, 8);
         $queryStr = '';
@@ -396,8 +392,8 @@ class AmazonSellingPartnerApi
         $paramSign .= "{$signHeader}\n";
         $paramSign .= $queryStr;
         $paramSign = hash('sha256', $paramSign);
-        $scope = $this->createScope($shortDate, $region, $service);
-        $signature = hash_hmac('sha256', sprintf("AWS4-HMAC-SHA256\n%s\n%s\n%s", $datetime, $scope, $paramSign), $this->getSignKey($shortDate, $region, $service, $secretKey));
+        $scope = $this->createScope($shortDate, $this->region, $service);
+        $signature = hash_hmac('sha256', sprintf("AWS4-HMAC-SHA256\n%s\n%s\n%s", $datetime, $scope, $paramSign), $this->getSignKey($shortDate, $this->region, $service, $secretKey));
         $authorization = sprintf('AWS4-HMAC-SHA256 Credential=%s/%s, SignedHeaders=%s, Signature=%s', $accessKey, $scope, $signHeader, $signature);
         return $authorization;
     }
